@@ -1,5 +1,6 @@
-import { useRouter } from 'next/router';
 import { ChangeEvent, FormEvent, useState } from 'react';
+
+import { useAuth } from '@/components/context/AuthContext';
 
 interface LoginForm {
   email: string;
@@ -7,7 +8,7 @@ interface LoginForm {
 }
 
 export default function Login() {
-  const router = useRouter();
+  const { login } = useAuth();
   const [payload, setPayload] = useState<LoginForm>({
     email: '',
     password: '',
@@ -23,41 +24,7 @@ export default function Login() {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>, payload: LoginForm) => {
     e.preventDefault();
-
-    const requestOptions = {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify(payload),
-    };
-
-    fetch('https://demo.cardid.app/api/login/', requestOptions)
-      .then((res) => {
-        if (res.ok) {
-          // Login successful
-          return res.json();
-        } else {
-          // Login failed
-          throw new Error('Login failed');
-        }
-      })
-      .then((data) => {
-        // Access the response data
-        console.log('Response:', data);
-        localStorage.setItem('user', data.result.email);
-        localStorage.setItem('token', data.result.token);
-
-        // when successfully logged in redirect to home page
-        router.push('/');
-      })
-      .catch((error) => {
-        // An error occurred during the request
-        console.error('Error:', error);
-        // Handle the error appropriately
-      });
+    login(payload);
   };
 
   return (
