@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 interface AuthContextType {
   currentUser: string | null;
   login: (payload: Payload) => Promise<void | undefined>;
+  logout: () => void;
 }
 
 interface AuthProviderProps {
@@ -25,6 +26,7 @@ type Payload = {
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
   login: async () => undefined,
+  logout: () => {},
 });
 
 export function useAuth() {
@@ -47,18 +49,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         body: JSON.stringify(payload),
       };
 
-      const response = await fetch(
-        'https://demo.cardid.app/api/login/',
-        requestOptions
-      );
+      const response = await fetch('[ YOUR LOGIN API ]', requestOptions);
       if (response.ok) {
         // Login successful
         const data: ResponseData = await response.json();
-        localStorage.setItem('user', data.result.email);
-        localStorage.setItem('token', data.result.token);
+        localStorage.setItem('user', data.user);
+        localStorage.setItem('token', data.token);
 
         //
-        setCurrentUser(data.result.email);
+        setCurrentUser(data.user);
 
         // when successfully logged in redirect to home page
         router.push('/');
@@ -71,9 +70,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
+  function logout(): void {
+    // Remove user from localStorage
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+
+    // TODO: for token expiration if implemented
+    // localStorage.removeItem('setupTime');
+
+    // Clear the user state
+    setCurrentUser(null);
+
+    // Navigate to the login page
+    router.push('/login');
+  }
+
   const value = {
     currentUser,
     login,
+    logout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
